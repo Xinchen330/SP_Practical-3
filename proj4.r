@@ -70,6 +70,22 @@ newt(theta,func,grad,hess=NULL,...,tol=1e-8,fscale=1,maxit=100,max.half=20,
       h <- hess(theta) ## Hessian matrix
       ## The inverse of the Hessian matrix, guaranteed to be positive definite
       hinv <- hess_inv(theta,h)
+      ## Compute the descent direction
+      delta <- -hinv %*% grad(theta)
+      ## Initialise a counter for the number of times the step was halved
+      i_half <- 0
+      ## Repeatedly halve step sizes until the objective decreases
+      while (func(theta+delta) >= func(theta)) {
+        delta <- delta/2
+        i_half <- i_half+1 # Update counter
+        ## Stop and print error message if the max.half is reached without 
+        ## reducing the objective
+        if (i_half > max.half) {
+          stop("Failed to reduce the objective despite trying max.half step 
+               halvings")
+        }
+      }
+      theta <- theta + delta ## Update parameter values
     }
   }
   ## Case II: the Hessian matrix is not provided, approximate Hessian matrices 
