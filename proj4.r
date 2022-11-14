@@ -53,8 +53,8 @@ hess_inv <- function(h) {
   return(hinv)
 }
 
-newt(theta,func,grad,hess=NULL,...,tol=1e-8,fscale=1,maxit=100,max.half=20,
-     eps=1e-6) {
+newt <- function(theta,func,grad,hess=NULL,...,tol=1e-8,fscale=1,maxit=100,
+                 max.half=20,eps=1e-6) {
   ## Issue errors when the objective or derivatives are not finite at the
   ## initial theta
   if (abs(func(theta))==Inf | any(abs(grad(theta))==Inf)) {
