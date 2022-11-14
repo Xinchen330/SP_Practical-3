@@ -80,12 +80,25 @@ newt(theta,func,grad,hess=NULL,...,tol=1e-8,fscale=1,maxit=100,max.half=20,
         i_half <- i_half+1 # Update counter
         ## Stop and print error message if the max.half is reached without 
         ## reducing the objective
-        if (i_half > max.half) {
+        if (func(theta+delta) >= func(theta) & i_half == max.half) {
           stop("Failed to reduce the objective despite trying max.half step 
-               halvings")
+               halvings!")
         }
       }
       theta <- theta + delta ## Update parameter values
+      iter <- iter + 1 ## Update counter
+      ## Stop and print error message if the maxit is reached without 
+      ## convergence
+      if (any(abs(grad(theta)) >= threshold) & iter == maxit) {
+        stop("Maxit is reached without convergence!")
+      }
+    }
+    ## Check if the Hessian is positive definite at convergence
+    h <- hess(theta) ## Hessian matrix at convergence
+    hinv <- try(chol2inv(chol(h)),silent=TRUE)
+    ## Issue errors if the Hessian is not positive definite at convergence
+    if (inherits(hinv,"try-error")) {
+      cat("The Hessian is not positive definite at convergence")
     }
   }
   ## Case II: the Hessian matrix is not provided, approximate Hessian matrices 
