@@ -37,6 +37,22 @@ fd <- function(theta,grad,eps=1e-6) {
   return(hfd)
 }
 
+# Function hess_inv to find the inverse of a given Hessian matrix
+# Inputs:
+## h -- the Hessian matrix to be inverted
+# The function hess_inv returns the inverse of the given Hessian matrix h,
+# which is guaranteed to be positive definite
+hess_inv <- function(h) {
+  ## Test if the Hessian is positive definite with Cholesky decomposition
+  hinv <- try(chol2inv(chol(h)),silent = TRUE)
+  while (inherits(hinv,"try-error")) {
+    ## Keep adding identity matrix to force the Hessian to be positive definite
+    h <- h + diag(ncol(h))
+    hinv <- try(chol2inv(chol(h)),silent=TRUE)
+  }
+  return(hinv)
+}
+
 newt(theta,func,grad,hess=NULL,...,tol=1e-8,fscale=1,maxit=100,max.half=20,
      eps=1e-6) {
   ## Issue errors when the objective or derivatives are not finite at the
@@ -45,12 +61,20 @@ newt(theta,func,grad,hess=NULL,...,tol=1e-8,fscale=1,maxit=100,max.half=20,
     warning("The objective or derivatives are not finite at the initial 
             theta!")
   }
-  ## If Hessian matrix is not provided, approximate the initial Hessian matrix
-  ## using finite difference
-  if (is.null(hess)) {
-    hess <- fd(theta,grad,eps)
-  }
-  iter <- 1 ## Initialise a counter for number of iterations
+  iter <- 0 ## Initialise a counter for number of iterations
   ## The criteria for judging whether the gradient vector is zero
   threshold <- tol*(abs(func(theta)) + fscale)
+  ## Case I: the Hessian matrix is provided
+  if (!is.null(hess)) {
+    while (any(abs(grad(theta)) >= threshold)) {
+      h <- hess(theta) ## Hessian matrix
+      ## The inverse of the Hessian matrix, guaranteed to be positive definite
+      hinv <- hess_inv(theta,h)
+    }
+  }
+  ## Case II: the Hessian matrix is not provided, approximate Hessian matrices 
+  ## using finite difference
+  else {
+    hess <- fd(theta,grad,eps)
+  }
 }
