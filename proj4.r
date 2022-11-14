@@ -71,7 +71,7 @@ newt <- function(theta,func,grad,hess=NULL,...,tol=1e-8,fscale=1,maxit=100,
     while (any(abs(grad(theta)) >= threshold)) {
       h <- hess(theta) ## Hessian matrix
       ## The inverse of the Hessian matrix, guaranteed to be positive definite
-      hinv <- hess_inv(theta,h)
+      hinv <- hess_inv(h)
       ## Compute the descent direction
       delta <- -hinv %*% grad(theta)
       ## Repeatedly halve step sizes until the objective decreases
