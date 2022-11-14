@@ -57,11 +57,13 @@ newt(theta,func,grad,hess=NULL,...,tol=1e-8,fscale=1,maxit=100,max.half=20,
      eps=1e-6) {
   ## Issue errors when the objective or derivatives are not finite at the
   ## initial theta
-  if (func(theta)==Inf | any(grad(theta)==Inf)) {
+  if (abs(func(theta))==Inf | any(abs(grad(theta))==Inf)) {
     warning("The objective or derivatives are not finite at the initial 
             theta!")
   }
   iter <- 0 ## Initialise a counter for number of iterations
+  ## Initialise a counter for the number of times the step was halved
+  i_half <- 0
   ## The criteria for judging whether the gradient vector is zero
   threshold <- tol*(abs(func(theta)) + fscale)
   ## Case I: the Hessian matrix is provided
@@ -72,15 +74,13 @@ newt(theta,func,grad,hess=NULL,...,tol=1e-8,fscale=1,maxit=100,max.half=20,
       hinv <- hess_inv(theta,h)
       ## Compute the descent direction
       delta <- -hinv %*% grad(theta)
-      ## Initialise a counter for the number of times the step was halved
-      i_half <- 0
       ## Repeatedly halve step sizes until the objective decreases
       while (func(theta+delta) >= func(theta)) {
         delta <- delta/2
         i_half <- i_half+1 # Update counter
         ## Stop and print error message if the max.half is reached without 
         ## reducing the objective
-        if (func(theta+delta) >= func(theta) & i_half == max.half) {
+        if (func(theta+delta) >= func(theta) & i_half >= max.half) {
           stop("Failed to reduce the objective despite trying max.half step 
                halvings!")
         }
@@ -89,7 +89,7 @@ newt(theta,func,grad,hess=NULL,...,tol=1e-8,fscale=1,maxit=100,max.half=20,
       iter <- iter + 1 ## Update counter
       ## Stop and print error message if the maxit is reached without 
       ## convergence
-      if (any(abs(grad(theta)) >= threshold) & iter == maxit) {
+      if (any(abs(grad(theta)) >= threshold) & iter >= maxit) {
         stop("Maxit is reached without convergence!")
       }
     }
@@ -104,6 +104,6 @@ newt(theta,func,grad,hess=NULL,...,tol=1e-8,fscale=1,maxit=100,max.half=20,
   ## Case II: the Hessian matrix is not provided, approximate Hessian matrices 
   ## using finite difference
   else {
-    hess <- fd(theta,grad,eps)
+    hfd <- fd(theta,grad,eps)
   }
 }
