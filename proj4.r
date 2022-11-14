@@ -45,9 +45,12 @@ newt(theta,func,grad,hess=NULL,...,tol=1e-8,fscale=1,maxit=100,max.half=20,
     warning("The objective or derivatives are not finite at the initial 
             theta!")
   }
-  ## If Hessian matrix is not provided, approximate the Hessian matrix by
-  ## finite differencing the gradient vector
-  if (hess=NULL) {
+  ## If Hessian matrix is not provided, approximate the initial Hessian matrix
+  ## using finite difference
+  if (is.null(hess)) {
     hess <- fd(theta,grad,eps)
   }
+  iter <- 1 ## Initialise a counter for number of iterations
+  ## The criteria for judging whether the gradient vector is zero
+  threshold <- tol*(abs(func(theta)) + fscale)
 }
