@@ -112,5 +112,43 @@ newt <- function(theta,func,grad,hess=NULL,...,tol=1e-8,fscale=1,maxit=100,
       ## Compute the descent direction
       delta <- -hinv %*% grad(theta)
       ## Repeatedly halve step sizes until the objective decreases
+            while (func(theta+delta) >= func(theta) | is.na(func(theta+delta))) {
+        delta <- delta/2
+        i_half <- i_half+1 # Update counter
+        ## Stop and print error message if the objective function is non-finite
+        ## at max.half
+        if ((is.na(func(theta+delta)) | abs(func(theta+delta))==Inf) & 
+            i_half >= max.half) {
+          stop("The objective function is non finite at max.half!")
+        }
+        ## Stop and print error message if the max.half is reached without 
+        ## reducing the objective
+        else if (func(theta+delta) >= func(theta) & i_half >= max.half) {
+          stop("Failed to reduce the objective despite trying max.half step 
+               halvings!")
+        }
+      }
+      theta <- theta + delta ## Update parameter values
+      iter <- iter + 1 ## Update counter
+      ## Stop and print error message if the maxit is reached without 
+      ## convergence
+      if (any(abs(grad(theta)) >= threshold) & iter >= maxit) {
+        stop("Maxit is reached without convergence!")
+      }
+    }
+    ## Check if the Hessian is positive definite at convergence
+    h <- fd(theta,grad,eps) ## Hessian matrix at convergence
+    hinv <- try(chol2inv(chol(h)),silent=TRUE)
+    ## Issue errors if the Hessian is not positive definite at convergence
+    if (inherits(hinv,"try-error")) {
+      stop("The Hessian is not positive definite at convergence")
+    }
   }
+  f <- func(theta) ## The value of the objective at the minimum
+  g <- grad(theta) ## The gradient vector at the minimum
+  Hi <- hinv ## Inverse Hessian matrix at the minimum
+  ## A list containing the minimum objective function value f, value of 
+  ## parameters theta, number of iterations iter, gradient vector at the 
+  ## minimum g, the inverse Hessian matrix at the minimum Hi
+  li_newt <- list(f=f,theta=theta,iter=iter,g=g,Hi=Hi)
 }
