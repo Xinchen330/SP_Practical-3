@@ -104,6 +104,13 @@ newt <- function(theta,func,grad,hess=NULL,...,tol=1e-8,fscale=1,maxit=100,
   ## Case II: the Hessian matrix is not provided, approximate Hessian matrices 
   ## using finite difference
   else {
-    hfd <- fd(theta,grad,eps)
+    while (any(abs(grad(theta)) >= threshold)) {
+      ## Hesian matrix obtained by using finite difference
+      hfd <- fd(theta,grad,eps)
+      ## The inverse of the approximated Hessian matrix
+      hinv <- hess_inv(hfd)
+      ## Compute the descent direction
+      delta <- -hinv %*% grad(theta)
+      ## Repeatedly halve step sizes until the objective decreases
   }
 }
