@@ -95,11 +95,11 @@ hess_inv <- function(h) {
 ## Hi -- the inverse Hessian matrix at the minimum
 newt <- function(theta,func,grad,hess=NULL,...,tol=1e-8,fscale=1,maxit=100,
                  max.half=20,eps=1e-6) {
-  ## Issue errors when the objective or derivatives are not finite at the
-  ## initial theta
+  ## Stop and issue errors when the objective or derivatives are not finite at 
+  ## the initial theta
   if (abs(func(theta))==Inf | any(abs(grad(theta))==Inf) 
       | is.na(func(theta)) | any(is.na(grad(theta)))) {
-    warning("The objective or derivatives are not finite at the initial 
+    stop("The objective or derivatives are not finite at the initial 
             theta!")
   }
   iter <- 0 ## Initialise a counter for number of iterations
