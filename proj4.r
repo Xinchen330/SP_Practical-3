@@ -117,20 +117,21 @@ newt <- function(theta,func,grad,hess=NULL,...,tol=1e-8,fscale=1,maxit=100,
       delta <- -hinv %*% grad(theta)
       ## Repeatedly halve step sizes until the objective decreases
       while (func(theta+delta) >= func(theta) | is.na(func(theta+delta))) {
+        if (i_half >= max.half) {
+          ## Stop and print error message if the max.half is reached without 
+          ## reducing the objective
+          if (func(theta+delta) >= func(theta)) {
+            stop("Failed to reduce the objective despite trying max.half step 
+               halvings!")
+          }
+          ## Stop and print error message if the objective function is 
+          ## non-finite at max.half
+          else if (is.na(func(theta+delta)) | abs(func(theta+delta))==Inf) {
+            stop("The objective function is non finite at max.half!")
+          }
+        }
         delta <- delta/2
         i_half <- i_half+1 # Update counter
-        ## Stop and print error message if the objective function is non-finite
-        ## at max.half
-        if ((is.na(func(theta+delta)) | abs(func(theta+delta))==Inf) & 
-            i_half >= max.half) {
-          stop("The objective function is non finite at max.half!")
-        }
-        ## Stop and print error message if the max.half is reached without 
-        ## reducing the objective
-        else if (func(theta+delta) >= func(theta) & i_half >= max.half) {
-          stop("Failed to reduce the objective despite trying max.half step 
-               halvings!")
-        }
       }
       theta <- theta + delta ## Update parameter values
       iter <- iter + 1 ## Update counter
@@ -160,20 +161,21 @@ newt <- function(theta,func,grad,hess=NULL,...,tol=1e-8,fscale=1,maxit=100,
       delta <- -hinv %*% grad(theta)
       ## Repeatedly halve step sizes until the objective decreases
       while (func(theta+delta) >= func(theta) | is.na(func(theta+delta))) {
+        if (i_half >= max.half) {
+          ## Stop and print error message if the max.half is reached without 
+          ## reducing the objective
+          if (func(theta+delta) >= func(theta)) {
+            stop("Failed to reduce the objective despite trying max.half step 
+               halvings!")
+          }
+          ## Stop and print error message if the objective function is 
+          ## non-finite at max.half
+          else if (is.na(func(theta+delta)) | abs(func(theta+delta))==Inf) {
+            stop("The objective function is non finite at max.half!")
+          }
+        }
         delta <- delta/2
         i_half <- i_half+1 # Update counter
-        ## Stop and print error message if the objective function is non-finite
-        ## at max.half
-        if ((is.na(func(theta+delta)) | abs(func(theta+delta))==Inf) & 
-            i_half >= max.half) {
-          stop("The objective function is non finite at max.half!")
-        }
-        ## Stop and print error message if the max.half is reached without 
-        ## reducing the objective
-        else if (func(theta+delta) >= func(theta) & i_half >= max.half) {
-          stop("Failed to reduce the objective despite trying max.half step 
-               halvings!")
-        }
       }
       theta <- theta + delta ## Update parameter values
       iter <- iter + 1 ## Update counter
