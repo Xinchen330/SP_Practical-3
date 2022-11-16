@@ -87,7 +87,7 @@ hess_inv <- function(h) {
 ## max.half -- the maximum number of step halvings to try before concluding
 ## that the step fails to decrease the objective value, with default value 20
 ## eps -- the finite difference interval
-# The function returns a list containing 5 elements:
+# The function newt returns a list containing 5 elements:
 ## f -- the objective value at minimum
 ## theta -- the parameter values that minimizes the objective function
 ## iter -- the number of iterations to reach the minimum
