@@ -3,11 +3,24 @@
 ##                Yicong Sun (s2445309)
 ##                Yihong Zhao (s2331659)
 
-## Address of the github repo: 
+## Address of the github repo: https://github.com/Xinchen330/SP_Practical-4.git
 
 ## Contributions:
 
 # Overview:
+## This R script aims to give an independent implementation of Newton's method 
+## for optimization. The minimum is judged by comparing the absolute value of 
+## each element in the gradient vector with the threshold given by the user and 
+## making sure that the Hessian matrix is positive definite at the minimum. The 
+## step size to minimize the objective function is calculated by negating the 
+## product of the inverse Hessian matrix and the gradient vector at a given set 
+## of parameter values. If the user does not provide the Hessian matrix, it
+## will be approximated by finite differencing the gradient vector. At each 
+## step, two modifications are made to guarantee convergence. First, the 
+## Hessian matrix might be perturbed by adding multiples of the identity 
+## matrix until it is positive definite. Second, the step size might be 
+## repeatedly halved if it fails to reduce the objective function. These two 
+## modifications will ensure that the iteration converges to a minimum.
 
 # Function fd to approximate the Hessian matrix by finite differencing the
 # gradient vector
@@ -53,11 +66,39 @@ hess_inv <- function(h) {
   return(hinv)
 }
 
+# Function newt to minimize the objective function func using Newton's 
+# optimization method. The convergence is judged by comparing the absolute
+# value of each element in the gradient vector with the threshold calculated by 
+# multiplying the tolerance by the sum of the absolute value of the objective
+# value and fscale
+# Inputs:
+## theta - the initial guess of parameter values
+## func -- the objective function to minimize
+## grad -- the gradient function
+## hess -- the Hessian matrix, with default value NULL (not provided by the 
+## user). If the Hessian matrix is not provided, the Hessian matrix will be 
+## approximated by finite differencing the gradient vector
+## ... -- pass extra arguments required by func, grad and hess
+## tol -- convergence tolerence, with default value 1e-8
+## fscale -- an estimate of the magnitude of the objective value near the 
+## minimum, with default value 1
+## maxit -- the maximum number of iterations to try before concluding that the
+## Newton's method fails to converge, with default value 100
+## max.half -- the maximum number of step halvings to try before concluding
+## that the step fails to decrease the objective value, with default value 20
+## eps -- the finite difference interval
+# The function returns a list containing 5 elements:
+## f -- the objective value at minimum
+## theta -- the parameter values that minimizes the objective function
+## iter -- the number of iterations to reach the minimum
+## g -- the gradient vector at the minimum
+## Hi -- the inverse Hessian matrix at the minimum
 newt <- function(theta,func,grad,hess=NULL,...,tol=1e-8,fscale=1,maxit=100,
                  max.half=20,eps=1e-6) {
   ## Issue errors when the objective or derivatives are not finite at the
   ## initial theta
-  if (abs(func(theta))==Inf | any(abs(grad(theta))==Inf)) {
+  if (abs(func(theta))==Inf | any(abs(grad(theta))==Inf) 
+      | is.na(func(theta)) | any(is.na(grad(theta)))) {
     warning("The objective or derivatives are not finite at the initial 
             theta!")
   }
@@ -75,12 +116,18 @@ newt <- function(theta,func,grad,hess=NULL,...,tol=1e-8,fscale=1,maxit=100,
       ## Compute the descent direction
       delta <- -hinv %*% grad(theta)
       ## Repeatedly halve step sizes until the objective decreases
-      while (func(theta+delta) >= func(theta)) {
+      while (func(theta+delta) >= func(theta) | is.na(func(theta+delta))) {
         delta <- delta/2
         i_half <- i_half+1 # Update counter
+        ## Stop and print error message if the objective function is non-finite
+        ## at max.half
+        if ((is.na(func(theta+delta)) | abs(func(theta+delta))==Inf) & 
+            i_half >= max.half) {
+          stop("The objective function is non finite at max.half!")
+        }
         ## Stop and print error message if the max.half is reached without 
         ## reducing the objective
-        if (func(theta+delta) >= func(theta) & i_half >= max.half) {
+        else if (func(theta+delta) >= func(theta) & i_half >= max.half) {
           stop("Failed to reduce the objective despite trying max.half step 
                halvings!")
         }
@@ -98,7 +145,7 @@ newt <- function(theta,func,grad,hess=NULL,...,tol=1e-8,fscale=1,maxit=100,
     hinv <- try(chol2inv(chol(h)),silent=TRUE)
     ## Issue errors if the Hessian is not positive definite at convergence
     if (inherits(hinv,"try-error")) {
-      cat("The Hessian is not positive definite at convergence")
+      stop("The Hessian is not positive definite at convergence")
     }
   }
   ## Case II: the Hessian matrix is not provided, approximate Hessian matrices 
@@ -112,7 +159,7 @@ newt <- function(theta,func,grad,hess=NULL,...,tol=1e-8,fscale=1,maxit=100,
       ## Compute the descent direction
       delta <- -hinv %*% grad(theta)
       ## Repeatedly halve step sizes until the objective decreases
-            while (func(theta+delta) >= func(theta) | is.na(func(theta+delta))) {
+      while (func(theta+delta) >= func(theta) | is.na(func(theta+delta))) {
         delta <- delta/2
         i_half <- i_half+1 # Update counter
         ## Stop and print error message if the objective function is non-finite
