@@ -6,6 +6,22 @@
 ## Address of the github repo: https://github.com/Xinchen330/SP_Practical-4.git
 
 ## Contributions:
+## Similar to earlier projects, we aim to divide the whole project into three 
+## roughly equal tasks. Each of us is responsible for one particular section, 
+## and the other two help with the code planning.
+
+## Xin coded the fd function to approximate the Hessian matrix by finite 
+## differencing the gradient vector and was also responsible for error catching 
+## and handling.
+
+## Yicong contributed by coding Newton's method for the case when the Hessian 
+## matrix is provided.
+
+## Yihong designed hess_inv to find the inverse of the Hessian matrix and
+## worked on the case where the Hessian matrix was not provided.
+
+## We worked together to design different test cases to ensure that functions 
+## were working properly.
 
 # Overview:
 ## This R script aims to give an independent implementation of Newton's method 
